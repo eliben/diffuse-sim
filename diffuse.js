@@ -3,6 +3,7 @@
 const GridWidth = 300;
 const GridHeight = 300;
 const NumDiffusePoints = 20;
+const NumSteps = 10000;
 
 const FixedColor = "#ffffff";
 const DiffuseColor = "#555555";
@@ -28,6 +29,22 @@ class PlotGrid {
         this.data[y * this.w + x] = value;
     }
 
+    // Is the given (x,y) point adjacent to a cell in this grid?
+    isNearCell(x, y) {
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                if (dx != 0 || dy != 0) {
+                    let nx = clampInt(x+dx, 0, GridWidth-1);
+                    let ny = clampInt(y+dy, 0, GridHeight-1);
+                    if (grid.getCell(nx, ny)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
     flipCell(x, y) {
         this.data[y * this.w + x] = !this.data[y * this.w + x];
     }
@@ -44,9 +61,12 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function clampInt(value, minVal, maxVal) {
+    return Math.min(Math.max(value, minVal), maxVal);
+}
+
 function clearCanvas() {
-    Ctx.clearRect(0, 0, Canvas.width, Canvas.height);
-    Ctx.fillStyle = '#black';
+    Ctx.fillStyle = '#000000';
     Ctx.fillRect(0, 0, Canvas.width, Canvas.height);
 }
 
@@ -72,8 +92,6 @@ function redraw() {
 
 // ------------------
 
-clearCanvas();
-
 let grid = new PlotGrid(GridWidth, GridHeight);
 
 let middleY = GridHeight / 2;
@@ -91,3 +109,29 @@ for (let i = 0; i < NumDiffusePoints; i++) {
 }
 
 redraw();
+
+for (let step = 1; step < 50; step++) {
+    for (let pt of diffusePoints) {
+        // Each diffuse point makes a random step
+        let dx = getRandomInt(-1, 1);
+        let dy = getRandomInt(-1, 1);
+
+        pt.x = clampInt(pt.x + dx, 0, GridWidth-1);
+        pt.y = clampInt(pt.y + dy, 0, GridHeight-1);
+
+        // Check if this point should be fixed because it touches another
+        // fixed point.
+        if (grid.isNearCell(pt.x, pt.y)) {
+            // Fix this point in the grid.
+            grid.setCell(pt.x, pt.y);
+
+            // TODO: need a "box" here.
+            
+            // Replace the diffuse point with a new one.
+            pt.x = 
+        }
+    }
+
+    console.log('step', step);
+    redraw();
+}
