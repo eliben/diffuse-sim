@@ -1,0 +1,40 @@
+<!doctype html>
+<style>
+  .container {
+    margin: 0 auto;
+    display: grid;
+    max-width: 900px;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: repeat(1, fit-content());
+    grid-template-areas:
+      "plotcanvas sidebar"
+  }
+
+  .plotcanvas {
+    grid-area: plotcanvas;
+    justify-self: center;
+    padding: 10px;
+  }
+
+  .sidebar {
+    grid-area: sidebar;
+    font-family: Verdana, sans-serif;
+    font-size: 14px;
+    border: solid 1px;
+    border-color: darkgray;
+    padding: 5px;
+  }
+</style>
+
+<body>
+  <div class="container">
+    <div class="plotcanvas">
+      <canvas id="plot" width="300" height="300"></canvas>
+    </div>
+    <div class="sidebar">
+        Hello
+    </div>
+  </div>
+
+  <script src="diffuse.js"></script>
+</body>
