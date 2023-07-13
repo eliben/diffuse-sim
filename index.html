@@ -3,8 +3,8 @@
     .container {
         margin: 0 auto;
         display: grid;
-        max-width: 900px;
-        grid-template-columns: 2fr 1fr;
+        max-width: 800px;
+        grid-template-columns: 5fr 3fr;
         grid-template-rows: repeat(2, fit-content());
         grid-template-areas:
             "plotcanvas sidebar"
@@ -50,7 +50,16 @@
             <button id="stop" title="Stop simulation">Stop</button>
         </div>
         <div class="sidebar">
-            Hello
+            <a href="https://en.wikipedia.org/wiki/Diffusion-limited_aggregation">Diffusion-limited aggregation</a>
+            <p>
+                A simple simulator providing a couple of different algorithms
+                for re-generating diffuse points that affect how the structure
+                is assembled.
+            </p>
+            <p>
+                For additional customization options, there are some constants
+                you can tweak in the code.
+            </p>
         </div>
     </div>
 
