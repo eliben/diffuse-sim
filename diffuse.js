@@ -117,7 +117,7 @@ for (let i = 0; i < NumDiffusePoints; i++) {
 
 redraw();
 
-for (let step = 1; step < 50; step++) {
+function doStep(stepn, maxSteps) {
     for (let pt of diffusePoints) {
         // Each diffuse point makes a random step
         let dx = randIntInRange(-1, 1);
@@ -130,6 +130,7 @@ for (let step = 1; step < 50; step++) {
         // fixed point.
         if (grid.isNearCell(pt.x, pt.y)) {
             // Fix this point in the grid.
+            console.log(`fixing ${pt.x} ${pt.y}`);
             grid.setCell(pt.x, pt.y);
             updateBoundBox(pt.x, pt.y);
 
@@ -139,9 +140,15 @@ for (let step = 1; step < 50; step++) {
         }
     }
 
-    console.log('step', step);
     redraw();
+    console.log(`step ${stepn}`);
+
+    if (stepn < maxSteps) {
+        setTimeout(doStep, 0, stepn + 1, maxSteps);
+    }
 }
+
+doStep(1, 500);
 
 // Updates the bound box based on new coordinates for an added fixed point.
 // The bound box will try to remain 10 px away from the farthest fixed point,
