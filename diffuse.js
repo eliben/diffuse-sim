@@ -183,9 +183,16 @@ function doSteps(numSteps) {
 
                 // Replace the diffuse point with a new one that's not already
                 // on the grid or adjacent to a fixed point.
+                let attempts = 0;
                 while (grid.isNearCell(pt.x, pt.y)) {
                     pt.x = randIntInRange(boundBoxStartX, boundBoxEndX);
                     pt.y = randIntInRange(boundBoxStartY, boundBoxEndY);
+                    attempts++;
+
+                    if (attempts >= 100) {
+                        alert("Too many fixed points; please restart simulation!");
+                        return;
+                    }
                 }
             }
         }
