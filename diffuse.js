@@ -7,9 +7,11 @@ const NumSteps = 10000;
 
 const FixedColor = "#ffffff";
 const DiffuseColor = "#555555";
+const TextColor = "#f2ec96";
 
 const Canvas = document.getElementById('plot');
 const Ctx = Canvas.getContext('2d');
+Ctx.font = "10px serif";
 Canvas.width = GridWidth;
 Canvas.height = GridHeight;
 
@@ -70,7 +72,7 @@ function clearCanvas() {
     Ctx.fillRect(0, 0, Canvas.width, Canvas.height);
 }
 
-function redraw() {
+function redraw(stepn) {
     clearCanvas();
 
     // Draw the fixed points
@@ -88,6 +90,9 @@ function redraw() {
     for (let pt of diffusePoints) {
         Ctx.fillRect(pt.x, pt.y, 1, 1);
     }
+
+    Ctx.fillStyle = TextColor;
+    Ctx.fillText(`${stepn}`, 10, GridWidth - 10);
 }
 
 // ------------------
@@ -100,7 +105,7 @@ let middleX = GridWidth / 2;
 grid.setCell(middleX, middleY, true);
 
 // A "bound box" around the currently fixed points sets the boundaries for
-// where to generate new diffuse points.
+// where to generate new diffuse points, and also restrict their random walk.
 let boundBoxStartX = middleX - 10;
 let boundBoxStartY = middleY - 10;
 let boundBoxEndX = middleX + 10;
@@ -115,40 +120,45 @@ for (let i = 0; i < NumDiffusePoints; i++) {
     });
 }
 
-redraw();
+redraw(1);
 
 function doStep(stepn, maxSteps) {
-    for (let pt of diffusePoints) {
-        // Each diffuse point makes a random step
-        let dx = randIntInRange(-1, 1);
-        let dy = randIntInRange(-1, 1);
+    let n = stepn;
+    for (; n < Math.min(stepn + 10, maxSteps); n++) {
+        for (let pt of diffusePoints) {
+            // Each diffuse point makes a random step
+            let dx = randIntInRange(-1, 1);
+            let dy = randIntInRange(-1, 1);
 
-        pt.x = clampInt(pt.x + dx, 0, GridWidth - 1);
-        pt.y = clampInt(pt.y + dy, 0, GridHeight - 1);
+            pt.x = clampInt(pt.x + dx, boundBoxStartX, boundBoxEndX);
+            pt.y = clampInt(pt.y + dy, boundBoxStartY, boundBoxEndY);
 
-        // Check if this point should be fixed because it touches another
-        // fixed point.
-        if (grid.isNearCell(pt.x, pt.y)) {
-            // Fix this point in the grid.
-            console.log(`fixing ${pt.x} ${pt.y}`);
-            grid.setCell(pt.x, pt.y);
-            updateBoundBox(pt.x, pt.y);
+            // Check if this point should be fixed because it touches another
+            // fixed point.
+            if (grid.isNearCell(pt.x, pt.y)) {
+                // Fix this point in the grid.
+                console.log(`fixing ${pt.x} ${pt.y}`);
+                grid.setCell(pt.x, pt.y, true);
+                updateBoundBox(pt.x, pt.y);
 
-            // Replace the diffuse point with a new one.
-            pt.x = randIntInRange(boundBoxStartX, boundBoxEndX);
-            pt.y = randIntInRange(boundBoxStartY, boundBoxEndY);
+                // Replace the diffuse point with a new one that's not fixed.
+                while (grid.getCell(pt.x, pt.y)) {
+                    pt.x = randIntInRange(boundBoxStartX, boundBoxEndX);
+                    pt.y = randIntInRange(boundBoxStartY, boundBoxEndY);
+                }
+            }
         }
     }
 
-    redraw();
-    console.log(`step ${stepn}`);
+    stepn = n;
+    redraw(stepn);
 
     if (stepn < maxSteps) {
         setTimeout(doStep, 0, stepn + 1, maxSteps);
     }
 }
 
-doStep(1, 500);
+doStep(1, 15000);
 
 // Updates the bound box based on new coordinates for an added fixed point.
 // The bound box will try to remain 10 px away from the farthest fixed point,
