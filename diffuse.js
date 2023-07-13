@@ -15,11 +15,9 @@ const RunButton = document.getElementById('run');
 const NumStepsInput = document.getElementById('numsteps');
 NumStepsInput.value = 20000;
 const StopButton = document.getElementById('stop');
-const ResetButton = document.getElementById('reset');
 
 RunButton.addEventListener("mousedown", onRun);
 StopButton.addEventListener("mousedown", onStop);
-ResetButton.addEventListener("mousedown", onReset);
 
 Ctx.font = "10px serif";
 Canvas.width = GridWidth;
@@ -111,12 +109,10 @@ function redraw() {
         RunButton.disabled = true;
         NumStepsInput.disabled = true;
         StopButton.disabled = false;
-        ResetButton.disabled = true;
     } else {
         RunButton.disabled = false;
         NumStepsInput.disabled = false;
         StopButton.disabled = true;
-        ResetButton.disabled = false;
     }
 }
 
@@ -156,14 +152,12 @@ function onRun() {
     let numSteps = parseInt(NumStepsInput.value, 10);
     state.runState = RunState.RUNNING;
     doSteps(numSteps);
+    redraw();
 }
 
 function onStop() {
     state.runState = RunState.STOPPED;
-}
-
-function onReset() {
-
+    redraw();
 }
 
 // doSteps runs numSteps simulation steps starting with state.curStep. It breaks
@@ -199,11 +193,13 @@ function doSteps(numSteps) {
 
     let stepsRan = n - state.curStep;
     state.curStep = n;
-    redraw();
 
     if (state.runState == RunState.RUNNING && stepsRan < numSteps) {
         setTimeout(doSteps, 0, numSteps - stepsRan);
+    } else {
+        state.runState = RunState.STOPPED;
     }
+    redraw();
 }
 
 // Updates the bound box based on new coordinates for an added fixed point.
