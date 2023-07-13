@@ -4,4 +4,4 @@ A JS simulation of [Diffusion-limited aggregation](https://en.wikipedia.org/wiki
 
 [Try it online](https://eliben.github.io/diffuse-sim/)! Here's a screenshot:
 
-
+![Screnshot](/doc/screenshot.png)
