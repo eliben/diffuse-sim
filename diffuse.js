@@ -3,7 +3,7 @@
 const GridWidth = 400;
 const GridHeight = 400;
 const NumDiffusePoints = 30;
-const NumSteps = 10000;
+const StepsPerDraw = 100;
 
 const FixedColor = "#ffffff";
 const DiffuseColor = "#557755";
@@ -11,6 +11,16 @@ const TextColor = "#f2ec96";
 
 const Canvas = document.getElementById('plot');
 const Ctx = Canvas.getContext('2d');
+const RunButton = document.getElementById('run');
+const NumStepsInput = document.getElementById('numsteps');
+NumStepsInput.value = 20000;
+const StopButton = document.getElementById('stop');
+const ResetButton = document.getElementById('reset');
+
+RunButton.addEventListener("mousedown", onRun);
+StopButton.addEventListener("mousedown", onStop);
+ResetButton.addEventListener("mousedown", onReset);
+
 Ctx.font = "10px serif";
 Canvas.width = GridWidth;
 Canvas.height = GridHeight;
@@ -118,11 +128,27 @@ for (let i = 0; i < NumDiffusePoints; i++) {
     });
 }
 
-redraw(1);
+redraw(0);
 
-function doStep(stepn, maxSteps) {
-    let n = stepn;
-    for (; n < Math.min(stepn + 100, maxSteps); n++) {
+function onRun() {
+    let numSteps = parseInt(NumStepsInput.value, 10);
+    doSteps(0, numSteps);
+}
+
+function onStop() {
+
+}
+
+function onReset() {
+    
+}
+
+// doSteps runs numSteps simulation steps starting with startStep. It breaks
+// this task into multiple self-invocations via setTimeout, running no more
+// than StepsPerDraw steps per invocation.
+function doSteps(startStep, numSteps) {
+    let n = startStep;
+    for (; n < startStep + Math.min(StepsPerDraw, numSteps); n++) {
         for (let pt of diffusePoints) {
             // Each diffuse point makes a random step
             let dx = randIntInRange(-1, 1);
@@ -148,15 +174,13 @@ function doStep(stepn, maxSteps) {
         }
     }
 
-    stepn = n;
-    redraw(stepn);
+    redraw(n);
+    let stepsRan = n - startStep;
 
-    if (stepn < maxSteps) {
-        setTimeout(doStep, 0, stepn + 1, maxSteps);
+    if (stepsRan < numSteps) {
+        setTimeout(doSteps, 0, n, numSteps - stepsRan);
     }
 }
-
-doStep(1, 100000);
 
 // Updates the bound box based on new coordinates for an added fixed point.
 // The bound box will try to remain 10 px away from the farthest fixed point,
