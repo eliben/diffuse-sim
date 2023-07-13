@@ -25,6 +25,11 @@ Ctx.font = "10px serif";
 Canvas.width = GridWidth;
 Canvas.height = GridHeight;
 
+const RunState = Object.freeze({
+    RUNNING: "running",
+    STOPPED: "stopped",
+});
+
 class PlotGrid {
     constructor(width, height) {
         this.w = width;
@@ -80,7 +85,7 @@ function clearCanvas() {
     Ctx.fillRect(0, 0, Canvas.width, Canvas.height);
 }
 
-function redraw(stepn) {
+function redraw() {
     clearCanvas();
 
     // Draw the fixed points
@@ -100,10 +105,27 @@ function redraw(stepn) {
     }
 
     Ctx.fillStyle = TextColor;
-    Ctx.fillText(`${stepn}`, 10, GridWidth - 10);
+    Ctx.fillText(`${state.curStep}`, 10, GridWidth - 10);
+
+    if (state.runState == RunState.RUNNING) {
+        RunButton.disabled = true;
+        NumStepsInput.disabled = true;
+        StopButton.disabled = false;
+        ResetButton.disabled = true;
+    } else {
+        RunButton.disabled = false;
+        NumStepsInput.disabled = false;
+        StopButton.disabled = true;
+        ResetButton.disabled = false;
+    }
 }
 
 // ------------------
+
+let state = {
+    runState: RunState.STOPPED,
+    curStep: 0,
+}
 
 let grid = new PlotGrid(GridWidth, GridHeight);
 
@@ -128,27 +150,28 @@ for (let i = 0; i < NumDiffusePoints; i++) {
     });
 }
 
-redraw(0);
+redraw();
 
 function onRun() {
     let numSteps = parseInt(NumStepsInput.value, 10);
-    doSteps(0, numSteps);
+    state.runState = RunState.RUNNING;
+    doSteps(numSteps);
 }
 
 function onStop() {
-
+    state.runState = RunState.STOPPED;
 }
 
 function onReset() {
-    
+
 }
 
-// doSteps runs numSteps simulation steps starting with startStep. It breaks
+// doSteps runs numSteps simulation steps starting with state.curStep. It breaks
 // this task into multiple self-invocations via setTimeout, running no more
 // than StepsPerDraw steps per invocation.
-function doSteps(startStep, numSteps) {
-    let n = startStep;
-    for (; n < startStep + Math.min(StepsPerDraw, numSteps); n++) {
+function doSteps(numSteps) {
+    let n = state.curStep;
+    for (; n < state.curStep + Math.min(StepsPerDraw, numSteps); n++) {
         for (let pt of diffusePoints) {
             // Each diffuse point makes a random step
             let dx = randIntInRange(-1, 1);
@@ -174,11 +197,12 @@ function doSteps(startStep, numSteps) {
         }
     }
 
-    redraw(n);
-    let stepsRan = n - startStep;
+    let stepsRan = n - state.curStep;
+    state.curStep = n;
+    redraw();
 
-    if (stepsRan < numSteps) {
-        setTimeout(doSteps, 0, n, numSteps - stepsRan);
+    if (state.runState == RunState.RUNNING && stepsRan < numSteps) {
+        setTimeout(doSteps, 0, numSteps - stepsRan);
     }
 }
 
