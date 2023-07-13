@@ -6,7 +6,7 @@ const NumDiffusePoints = 20;
 const NumSteps = 10000;
 
 const FixedColor = "#ffffff";
-const DiffuseColor = "#555555";
+const DiffuseColor = "#557755";
 const TextColor = "#f2ec96";
 
 const Canvas = document.getElementById('plot');
@@ -35,16 +35,14 @@ class PlotGrid {
     isNearCell(x, y) {
         for (let dx = -1; dx <= 1; dx++) {
             for (let dy = -1; dy <= 1; dy++) {
-                if (dx != 0 || dy != 0) {
-                    let nx = clampInt(x + dx, 0, GridWidth - 1);
-                    let ny = clampInt(y + dy, 0, GridHeight - 1);
-                    if (grid.getCell(nx, ny)) {
-                        return true;
-                    }
+                let nx = clampInt(x + dx, 0, GridWidth - 1);
+                let ny = clampInt(y + dy, 0, GridHeight - 1);
+                if (grid.getCell(nx, ny)) {
+                    return true;
                 }
             }
-            return false;
         }
+        return false;
     }
 
     flipCell(x, y) {
@@ -111,7 +109,7 @@ let boundBoxStartY = middleY - 10;
 let boundBoxEndX = middleX + 10;
 let boundBoxEndY = middleY + 10;
 
-// Create initial set of diffuse points not too far from the center.
+// Create initial set of diffuse points..
 let diffusePoints = [];
 for (let i = 0; i < NumDiffusePoints; i++) {
     diffusePoints.push({
@@ -124,7 +122,7 @@ redraw(1);
 
 function doStep(stepn, maxSteps) {
     let n = stepn;
-    for (; n < Math.min(stepn + 10, maxSteps); n++) {
+    for (; n < Math.min(stepn + 50, maxSteps); n++) {
         for (let pt of diffusePoints) {
             // Each diffuse point makes a random step
             let dx = randIntInRange(-1, 1);
@@ -138,6 +136,9 @@ function doStep(stepn, maxSteps) {
             if (grid.isNearCell(pt.x, pt.y)) {
                 // Fix this point in the grid.
                 console.log(`fixing ${pt.x} ${pt.y}`);
+                if (grid.getCell(pt.x, pt.y)) {
+                    console.log('already fixed~~');
+                }
                 grid.setCell(pt.x, pt.y, true);
                 updateBoundBox(pt.x, pt.y);
 
