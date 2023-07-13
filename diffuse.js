@@ -1,8 +1,8 @@
 'use strict';
 
-const GridWidth = 300;
-const GridHeight = 300;
-const NumDiffusePoints = 20;
+const GridWidth = 400;
+const GridHeight = 400;
+const NumDiffusePoints = 30;
 const NumSteps = 10000;
 
 const FixedColor = "#ffffff";
@@ -31,7 +31,7 @@ class PlotGrid {
         this.data[y * this.w + x] = value;
     }
 
-    // Is the given (x,y) point adjacent to a cell in this grid?
+    // Is the given (x,y) point on the grid or adjacent to a cell in this grid?
     isNearCell(x, y) {
         for (let dx = -1; dx <= 1; dx++) {
             for (let dy = -1; dy <= 1; dy++) {
@@ -122,7 +122,7 @@ redraw(1);
 
 function doStep(stepn, maxSteps) {
     let n = stepn;
-    for (; n < Math.min(stepn + 50, maxSteps); n++) {
+    for (; n < Math.min(stepn + 100, maxSteps); n++) {
         for (let pt of diffusePoints) {
             // Each diffuse point makes a random step
             let dx = randIntInRange(-1, 1);
@@ -135,15 +135,12 @@ function doStep(stepn, maxSteps) {
             // fixed point.
             if (grid.isNearCell(pt.x, pt.y)) {
                 // Fix this point in the grid.
-                console.log(`fixing ${pt.x} ${pt.y}`);
-                if (grid.getCell(pt.x, pt.y)) {
-                    console.log('already fixed~~');
-                }
                 grid.setCell(pt.x, pt.y, true);
                 updateBoundBox(pt.x, pt.y);
 
-                // Replace the diffuse point with a new one that's not fixed.
-                while (grid.getCell(pt.x, pt.y)) {
+                // Replace the diffuse point with a new one that's not already
+                // on the grid or adjacent to a fixed point.
+                while (grid.isNearCell(pt.x, pt.y)) {
                     pt.x = randIntInRange(boundBoxStartX, boundBoxEndX);
                     pt.y = randIntInRange(boundBoxStartY, boundBoxEndY);
                 }
@@ -159,7 +156,7 @@ function doStep(stepn, maxSteps) {
     }
 }
 
-doStep(1, 15000);
+doStep(1, 100000);
 
 // Updates the bound box based on new coordinates for an added fixed point.
 // The bound box will try to remain 10 px away from the farthest fixed point,
