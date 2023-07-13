@@ -34,8 +34,8 @@ class PlotGrid {
         for (let dx = -1; dx <= 1; dx++) {
             for (let dy = -1; dy <= 1; dy++) {
                 if (dx != 0 || dy != 0) {
-                    let nx = clampInt(x+dx, 0, GridWidth-1);
-                    let ny = clampInt(y+dy, 0, GridHeight-1);
+                    let nx = clampInt(x + dx, 0, GridWidth - 1);
+                    let ny = clampInt(y + dy, 0, GridHeight - 1);
                     if (grid.getCell(nx, ny)) {
                         return true;
                     }
@@ -55,7 +55,7 @@ class PlotGrid {
 }
 
 // Returns a random integer in the inclusive range [min, max].
-function getRandomInt(min, max) {
+function randIntInRange(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -99,12 +99,19 @@ let middleX = GridWidth / 2;
 // Initialize a single fixed point at the center
 grid.setCell(middleX, middleY, true);
 
+// A "bound box" around the currently fixed points sets the boundaries for
+// where to generate new diffuse points.
+let boundBoxStartX = middleX - 10;
+let boundBoxStartY = middleY - 10;
+let boundBoxEndX = middleX + 10;
+let boundBoxEndY = middleY + 10;
+
 // Create initial set of diffuse points not too far from the center.
 let diffusePoints = [];
 for (let i = 0; i < NumDiffusePoints; i++) {
     diffusePoints.push({
-        x: getRandomInt(-GridWidth / 10, GridWidth / 10) + middleX,
-        y: getRandomInt(-GridHeight / 10, GridHeight / 10) + middleY,
+        x: randIntInRange(boundBoxStartX, boundBoxEndX),
+        y: randIntInRange(boundBoxStartY, boundBoxEndY),
     });
 }
 
@@ -113,25 +120,36 @@ redraw();
 for (let step = 1; step < 50; step++) {
     for (let pt of diffusePoints) {
         // Each diffuse point makes a random step
-        let dx = getRandomInt(-1, 1);
-        let dy = getRandomInt(-1, 1);
+        let dx = randIntInRange(-1, 1);
+        let dy = randIntInRange(-1, 1);
 
-        pt.x = clampInt(pt.x + dx, 0, GridWidth-1);
-        pt.y = clampInt(pt.y + dy, 0, GridHeight-1);
+        pt.x = clampInt(pt.x + dx, 0, GridWidth - 1);
+        pt.y = clampInt(pt.y + dy, 0, GridHeight - 1);
 
         // Check if this point should be fixed because it touches another
         // fixed point.
         if (grid.isNearCell(pt.x, pt.y)) {
             // Fix this point in the grid.
             grid.setCell(pt.x, pt.y);
+            updateBoundBox(pt.x, pt.y);
 
-            // TODO: need a "box" here.
-            
             // Replace the diffuse point with a new one.
-            pt.x = 
+            pt.x = randIntInRange(boundBoxStartX, boundBoxEndX);
+            pt.y = randIntInRange(boundBoxStartY, boundBoxEndY);
         }
     }
 
     console.log('step', step);
     redraw();
+}
+
+// Updates the bound box based on new coordinates for an added fixed point.
+// The bound box will try to remain 10 px away from the farthest fixed point,
+// clamped to the canvas boundaries.
+function updateBoundBox(newX, newY) {
+    boundBoxStartX = Math.max(0, Math.min(boundBoxStartX, newX - 10));
+    boundBoxStartY = Math.max(0, Math.min(boundBoxStartY, newY - 10));
+
+    boundBoxEndX = Math.min(GridWidth - 1, Math.max(boundBoxEndX, newX + 10));
+    boundBoxEndY = Math.min(GridHeight - 1, Math.max(boundBoxEndY, newY + 10));
 }
