@@ -2,15 +2,16 @@
 
 const GridWidth = 400;
 const GridHeight = 400;
-const NumDiffusePoints = 30;
+const NumDiffusePoints = 50;
 const StepsPerDraw = 100;
 
 const FixedColor = "#ffffff";
-const DiffuseColor = "#557755";
+const DiffuseColor = "#66aa55";
 const TextColor = "#f2ec96";
 
 const Canvas = document.getElementById('plot');
 const Ctx = Canvas.getContext('2d');
+const AlgorithmSelect = document.getElementById('algorithm');
 const RunButton = document.getElementById('run');
 const NumStepsInput = document.getElementById('numsteps');
 NumStepsInput.value = 20000;
@@ -106,10 +107,12 @@ function redraw() {
     Ctx.fillText(`${state.curStep}`, 10, GridWidth - 10);
 
     if (state.runState == RunState.RUNNING) {
+        AlgorithmSelect.disabled = true;
         RunButton.disabled = true;
         NumStepsInput.disabled = true;
         StopButton.disabled = false;
     } else {
+        AlgorithmSelect.disabled = false;
         RunButton.disabled = false;
         NumStepsInput.disabled = false;
         StopButton.disabled = true;
@@ -149,10 +152,14 @@ for (let i = 0; i < NumDiffusePoints; i++) {
 redraw();
 
 function onRun() {
-    let numSteps = parseInt(NumStepsInput.value, 10);
-    state.runState = RunState.RUNNING;
-    doSteps(numSteps);
-    redraw();
+    let numSteps = Number(NumStepsInput.value);
+    if (isNaN(numSteps)) {
+        alert("Please enter a valid numeric number of steps!");
+    } else {
+        state.runState = RunState.RUNNING;
+        doSteps(numSteps);
+        redraw();
+    }
 }
 
 function onStop() {
@@ -185,10 +192,8 @@ function doSteps(numSteps) {
                 // on the grid or adjacent to a fixed point.
                 let attempts = 0;
                 while (grid.isNearCell(pt.x, pt.y)) {
-                    pt.x = randIntInRange(boundBoxStartX, boundBoxEndX);
-                    pt.y = randIntInRange(boundBoxStartY, boundBoxEndY);
+                    [pt.x, pt.y] = generateDiffusePoint();
                     attempts++;
-
                     if (attempts >= 100) {
                         alert("Too many fixed points; please restart simulation!");
                         return;
@@ -207,6 +212,24 @@ function doSteps(numSteps) {
         state.runState = RunState.STOPPED;
     }
     redraw();
+}
+
+function generateDiffusePoint() {
+    if (AlgorithmSelect.value === "radial") {
+        let reach = Math.max(
+            (boundBoxEndX - boundBoxStartX) / 2,
+            (boundBoxEndY - boundBoxStartY) / 2);
+
+        let angle = Math.random() * 2 * Math.PI;
+        return [
+            clampInt(middleX + Math.cos(angle) * reach, 0, GridWidth),
+            clampInt(middleY + Math.sin(angle) * reach, 0, GridHeight)];
+    } else { // boxy
+        return [
+            randIntInRange(boundBoxStartX, boundBoxEndX),
+            randIntInRange(boundBoxStartY, boundBoxEndY),
+        ];
+    }
 }
 
 // Updates the bound box based on new coordinates for an added fixed point.
